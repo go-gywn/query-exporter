@@ -1,3 +1,4 @@
+bind: 0.0.0.0:9104
 type: mysql
 instance: mytest
 dsn: tcp(127.0.0.1:3306)/information_schema

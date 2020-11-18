@@ -15,6 +15,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
 )
 
@@ -34,14 +35,15 @@ func main() {
 	// =====================
 	var b []byte
 	if b, err = ioutil.ReadFile(configFile); err != nil {
-		panic(err)
+		log.Errorf("Failed to read config file: %s", err)
+		os.Exit(1)
 	}
 
 	// =====================
 	// Load yaml
 	// =====================
 	if err := yaml.Unmarshal(b, &config); err != nil {
-		fmt.Println("=> group", err)
+		log.Errorf("Failed to load config: %s", err)
 		os.Exit(1)
 	}
 
@@ -57,6 +59,7 @@ func main() {
 			metric.Labels, nil,
 		)
 		config.Metrics[metricName] = metric
+		log.Infof("metric description for \"%s\" registerd", metricName)
 	}
 
 	// ========================
@@ -81,11 +84,15 @@ func main() {
 	})
 
 	// start server
-	http.ListenAndServe(":9104", nil)
+	log.Infof("Starting http server - %s", config.Bind)
+	if err := http.ListenAndServe(config.Bind, nil); err != nil {
+		log.Errorf("Failed to start http server: %s", err)
+	}
 }
 
 // Config config structure
 type Config struct {
+	Bind     string
 	Instance string
 	Type     string
 	DSN      string
@@ -124,15 +131,15 @@ func (e *QueryExporter) Collect(ch chan<- prometheus.Metric) {
 	conInfo := fmt.Sprintf("%s:%s@%s", e.cfg.User, e.cfg.Pass, e.cfg.DSN)
 	db, err := sql.Open(e.cfg.Type, conInfo)
 	if err != nil {
-		fmt.Println(err)
+		log.Errorf("Connect to %s database failed: %s", e.cfg.Type, err)
 		return
 	}
 	defer db.Close()
 
 	for _, metric := range e.cfg.Metrics {
 		rows, err := db.Query(metric.Query)
-		// skip if error
 		if err != nil {
+			log.Errorf("Failed to execute query: %s", err)
 			continue
 		}
 
