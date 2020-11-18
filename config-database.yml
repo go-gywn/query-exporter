@@ -1,0 +1,17 @@
+prod:
+  prod01:
+    type: mysql
+    dsn: tcp(127.0.0.1:3306)/information_schema
+    user: test
+    pass: test123
+  prod02:
+    type: mysql
+    dsn: tcp(127.0.0.1:3306)/information_schema
+    user: test
+    pass: test123
+dev:
+  dev01:
+    type: mysql
+    dsn: tcp(127.0.0.1:3306)/information_schema
+    user: test
+    pass: test123
