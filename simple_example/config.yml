@@ -6,13 +6,13 @@ pass: test123
 metrics:
   process_count_by_host:
     query: "select user, substring_index(host, ':', 1) host, count(*) sessions from information_schema.processlist group by 1,2 "
-    type: counter
+    type: guage
     description: "process count by host"
     labels: ["user","host"]
     value: sessions
   process_count_by_user:
     query: "select user, count(*) sessions from information_schema.processlist group by 1 "
-    type: counter
+    type: guage
     description: "process count by user"
     labels: ["user"]
     value: sessions
