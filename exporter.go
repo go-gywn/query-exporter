@@ -42,7 +42,7 @@ func (e *QueryExporter) scrape(instance Instance, ch chan<- prometheus.Metric) {
 	conInfo := fmt.Sprintf("%s:%s@%s", instance.User, instance.Pass, instance.DSN)
 	db, err := sql.Open(instance.Type, conInfo)
 	if err != nil {
-		log.Errorf("Connect to %s database failed: %s", instance.Type, err)
+		log.Errorf("[%s] Connect to %s database failed: %s", instance.Instance, instance.Type, err)
 		return
 	}
 	defer db.Close()
@@ -51,7 +51,7 @@ func (e *QueryExporter) scrape(instance Instance, ch chan<- prometheus.Metric) {
 		log.Debugf("Execute - %s", collect.Query)
 		rows, err := db.Query(collect.Query)
 		if err != nil {
-			log.Errorf("Failed to execute query: %s", err)
+			log.Errorf("[%s] Failed to execute query: %s", instance.Instance, err)
 			continue
 		}
 
@@ -84,7 +84,7 @@ func (e *QueryExporter) scrape(instance Instance, ch chan<- prometheus.Metric) {
 				case "guage":
 					ch <- prometheus.MustNewConstMetric(metric.metricDesc, prometheus.GaugeValue, val, labelVals...)
 				default:
-					log.Error("Metric type support only counter|guage, skip")
+					log.Errorf("[%s] Metric type support only counter|guage, skip", instance.Instance)
 					continue
 				}
 			}
