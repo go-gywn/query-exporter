@@ -45,7 +45,7 @@ metric01:
                    command,
                    count(*) sessions,
                    min(time) min_time,
-                   max(time) min_time
+                   max(time) max_time
             from information_schema.processlist
             group by 1,2,3,4"
     metrics:
