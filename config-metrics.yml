@@ -1,4 +1,32 @@
 metric01:
+  targets: ["dev"]
+  collects:
+  - query: "select user, 
+                   substring_index(host, ':', 1) host,
+                   db,
+                   command,
+                   count(*) sessions,
+                   min(time) min_time,
+                   max(time) min_time
+            from information_schema.processlist
+            group by 1,2,3,4"
+    metrics:
+      process_count:
+        type: guage
+        description: Session count
+        labels: ["user","host", "db", "command"]
+        value: "sessions"
+      process_session_min_time:
+        type: guage
+        description: Session count
+        labels: ["user","host", "db", "command"]
+        value: "min_time"
+      process_session_max_time:
+        type: guage
+        description: Session count
+        labels: ["user","host", "db", "command"]
+        value: "max_time"
+metric02:
   targets: ["prod"]
   collects:
   - query: "select user, 
@@ -33,31 +61,3 @@ metric01:
         description: innodb current trx count
         labels: []
         value: "cnt"
-metric02:
-  targets: ["dev"]
-  collects:
-  - query: "select user, 
-                   substring_index(host, ':', 1) host,
-                   db,
-                   command,
-                   count(*) sessions,
-                   min(time) min_time,
-                   max(time) min_time
-            from information_schema.processlist
-            group by 1,2,3,4"
-    metrics:
-      process_count:
-        type: guage
-        description: Session count
-        labels: ["user","host", "db", "command"]
-        value: "sessions"
-      process_session_min_time:
-        type: guage
-        description: Session count
-        labels: ["user","host", "db", "command"]
-        value: "min_time"
-      process_session_max_time:
-        type: guage
-        description: Session count
-        labels: ["user","host", "db", "command"]
-        value: "max_time"

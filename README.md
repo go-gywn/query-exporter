@@ -6,14 +6,24 @@
 
 ## Build & Run
 ```bash
-go get github.com/go-gywn/query-exporter
-cd $GOPATH/src/github.com/go-gywn/query-exporter
 go build .
 ./query-exporter                          \
+  --threads=8                             \
   --address="0.0.0.0:9104"                \
   --config-database="config-database.yml" \
   --config-metrics="config-metrics.yml"
 ```
+
+## Debugging
+```bash
+export LOG_LEVEL="debug" 
+./query-exporter                          \
+  --threads=8                             \
+  --address="0.0.0.0:9104"                \
+  --config-database="config-database.yml" \
+  --config-metrics="config-metrics.yml"
+```
+
 ## config-database format
 ```yaml
 prod:

@@ -4,29 +4,36 @@ import (
 	"flag"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	log "github.com/sirupsen/logrus"
 )
 
 var address string
 var group map[string]Instances
-var collectors map[string]Collector
+var collectors map[string]*Collector
 
 func main() {
 	var err error
 	var b []byte
 
+	var threads int64
 	var cfg1, cfg2 string
-	// var workers int
-	// flag.IntVar(&workers, "workers", 8, "worker count")
 	flag.StringVar(&address, "address", "0.0.0.0:9104", "http server port")
+	flag.Int64Var(&threads, "threads", 8, "collector thread count")
 	flag.StringVar(&cfg1, "config-database", "config-database.yml", "configuration databases")
 	flag.StringVar(&cfg2, "config-metrics", "config-metrics.yml", "configuration metrics")
 	flag.Parse()
+
+	// ===========================
+	log.Debugf("[address] %s", address)
+	log.Debugf("[threads] %d", threads)
+	log.Debugf("[config-database] %s", cfg1)
+	log.Debugf("[config-metrics] %s", cfg2)
 
 	// ===========================
 	// Load target database config
@@ -38,6 +45,7 @@ func main() {
 	if err := yaml.Unmarshal(b, &group); err != nil {
 		log.Fatalf("Failed to load database config: %s", err)
 	}
+	log.Debugf("[config-database] %s", group)
 
 	// ===========================
 	// Load target metric config
@@ -49,20 +57,28 @@ func main() {
 	if err := yaml.Unmarshal(b, &collectors); err != nil {
 		log.Fatalf("Failed to load metric config: %s", err)
 	}
-
-	for _, instances := range group {
-		for k, v := range instances {
-			v.Instance = k
-			instances[k] = v
-		}
-	}
+	log.Debugf("[config-metrics] %s", collectors)
 
 	// ===========================
-	// Regist metric describe
+	// Make statusDesc for collector result
+	// ===========================
+	statusDesc := prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, exporter, "status"),
+		"Query collect status",
+		[]string{"instance"}, nil,
+	)
+	log.Debugf("[statusDesc] %s", statusDesc)
+
+	// ===========================
+	// Regist collector and start exporter
 	// ===========================
 	prometheus.MustRegister(version.NewCollector(namespace + "_" + exporter))
-	for collectorKey, collector := range collectors {
-		for _, collect := range collector.Collects {
+	for path, collector := range collectors {
+
+		// Initialize metricDesc for collector
+		log.Debugf("[path] %s, [collector]", path, collector)
+		for i := range collector.Collects {
+			collect := &collector.Collects[i]
 			for metricKey, metric := range collect.Metrics {
 				metric.Labels = append(metric.Labels, "instance")
 				metric.metricDesc = prometheus.NewDesc(
@@ -70,15 +86,43 @@ func main() {
 					metric.Description,
 					metric.Labels, nil,
 				)
-				collect.Metrics[metricKey] = metric
 				log.Debug(">> ", metric)
 			}
 		}
 
-		// config http handler
-		log.Infof("Regist handler %s/%s", address, collectorKey)
-		http.HandleFunc("/"+collectorKey, GetHandlerFor(collector))
-		collectors[collectorKey] = collector
+		// Make slice for collector thread
+		slots := make([]Instances, threads)
+		for i := range slots {
+			slots[i] = Instances{}
+		}
+
+		// Split for each collector thread
+		i := 0
+		for _, target := range collector.Targets {
+			for k, v := range group[target] {
+				v.Name = k
+				slots[i%len(slots)][v.Name] = v
+				i += 1
+			}
+		}
+
+		// Regist collector
+		registry := prometheus.NewRegistry()
+		for i := range slots {
+			log.Debugf("[thread_%d] %d, [detail] %s", i, len(slots[i]), slots[i])
+			registry.Register(&QueryCollector{instances: slots[i], collects: collector.Collects, StatusDesc: statusDesc})
+		}
+
+		// Regist http handler
+		log.Infof("Regist handler %s/%s", address, path)
+		http.HandleFunc("/"+path, func(w http.ResponseWriter, r *http.Request) {
+			h := promhttp.HandlerFor(prometheus.Gatherers{
+				prometheus.DefaultGatherer,
+				registry,
+			}, promhttp.HandlerOpts{})
+			h.ServeHTTP(w, r)
+		})
+
 	}
 
 	// ===========================
@@ -90,37 +134,30 @@ func main() {
 	}
 }
 
-// GetHandlerFor new metric handler
-func GetHandlerFor(collector Collector) http.HandlerFunc {
-	registry := prometheus.NewRegistry()
+func init() {
+	// Version
+	version.Version = "0.1"
+	version.Branch = "main"
 
-	// regist query exporter
-	registry.MustRegister(&QueryExporter{
-		collector: collector,
-	})
-
-	gatherers := prometheus.Gatherers{
-		prometheus.DefaultGatherer,
-		registry,
+	// Log level
+	level := log.InfoLevel
+	if lvl, err := log.ParseLevel(os.Getenv("LOG_LEVEL")); err == nil {
+		level = lvl
 	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Delegate http serving to Prometheus client library, which will call collector.Collect.
-		h := promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{})
-		h.ServeHTTP(w, r)
-	}
+	log.Infof("Log level>> %s [error|info|debug]", level)
+	log.SetLevel(level)
 }
 
 // Instances target instance map
-type Instances map[string]Instance
+type Instances map[string]*Instance
 
 // Instance target instance
 type Instance struct {
-	Instance string
-	Type     string
-	DSN      string
-	User     string
-	Pass     string
+	Name string
+	Type string
+	DSN  string
+	User string
+	Pass string
 }
 
 // Collector metric groups
@@ -136,7 +173,7 @@ type Collect struct {
 }
 
 // Metrics metric map
-type Metrics map[string]Metric
+type Metrics map[string]*Metric
 
 // Metric metric map
 type Metric struct {
