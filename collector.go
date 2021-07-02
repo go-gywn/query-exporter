@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -55,8 +57,10 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 	defer db.Close()
 
 	// Connection check
-	if err := db.Ping(); err != nil {
-		log.Errorf("[%s] Connect to %s database failed: %s", instance.Name, instance.Type, err)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		log.Errorf("[%s] Ping to %s database failed: %s", instance.Name, instance.Type, err)
 		return
 	}
 
@@ -64,15 +68,14 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 	for _, collect := range e.collects {
 		log.Debugf("[%s] execute query: %s", instance.Name, collect.Query)
 
-		// // Query timeout
-		// ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-		// defer cancel()
-		// rows, err := db.QueryContext(ctx, collect.Query)
+		// Query timeout
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(collect.Timeout)*time.Second)
+		rows, err := db.QueryContext(ctx, collect.Query)
+		defer cancel()
 
-		rows, err := db.Query(collect.Query)
 		if err != nil {
-			log.Errorf("[%s] Failed to execute query: %s", instance.Name, err)
-			continue
+			log.Errorf("[%s] Failed to execute query: %s>> %s", instance.Name, err, collect.Query)
+			return
 		}
 
 		cols, err := rows.Columns()

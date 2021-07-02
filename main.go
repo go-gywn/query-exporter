@@ -17,16 +17,24 @@ var address string
 var group map[string]Instances
 var collectors map[string]*Collector
 
+const (
+	defaultQueryTimeout   = 1
+	defaultThreadCount    = 32
+	defaultAddress        = "0.0.0.0:9104"
+	defaultConfigDatabase = "config-database.yml"
+	defaultConfigMetrics  = "config-metrics.yml"
+)
+
 func main() {
 	var err error
 	var b []byte
 
 	var threads int64
 	var cfg1, cfg2 string
-	flag.StringVar(&address, "address", "0.0.0.0:9104", "http server port")
-	flag.Int64Var(&threads, "threads", 8, "collector thread count")
-	flag.StringVar(&cfg1, "config-database", "config-database.yml", "configuration databases")
-	flag.StringVar(&cfg2, "config-metrics", "config-metrics.yml", "configuration metrics")
+	flag.Int64Var(&threads, "threads", defaultThreadCount, "collector thread count")
+	flag.StringVar(&address, "address", defaultAddress, "http server port")
+	flag.StringVar(&cfg1, "config-database", defaultConfigDatabase, "configuration databases")
+	flag.StringVar(&cfg2, "config-metrics", defaultConfigMetrics, "configuration metrics")
 	flag.Parse()
 
 	// ===========================
@@ -87,6 +95,9 @@ func main() {
 					metric.Labels, nil,
 				)
 				log.Debug(">> ", metric)
+			}
+			if collect.Timeout <= 0 {
+				collect.Timeout = defaultQueryTimeout
 			}
 		}
 
@@ -169,6 +180,7 @@ type Collector struct {
 // Collect collect structure
 type Collect struct {
 	Query   string
+	Timeout int
 	Metrics Metrics
 }
 

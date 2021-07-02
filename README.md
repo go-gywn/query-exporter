@@ -58,6 +58,7 @@ metric01:
                    max(time) max_time
             from information_schema.processlist
             group by 1,2,3,4"
+    timeout: 1
     metrics:
       process_count:
         type: guage
@@ -93,6 +94,7 @@ metric02:
                    max(time) min_time
             from information_schema.processlist
             group by 1,2,3,4"
+    timeout: 2
     metrics:
       process_count:
         type: guage
