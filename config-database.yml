@@ -1,37 +1,23 @@
 prod:
   prod00:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod01:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod02:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod03:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod04:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod05:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
 dev:
   dev01:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema

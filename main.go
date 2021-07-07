@@ -167,8 +167,6 @@ type Instance struct {
 	Name string
 	Type string
 	DSN  string
-	User string
-	Pass string
 }
 
 // Collector metric groups

@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/godror/godror"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -48,8 +51,7 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 	}()
 
 	// Connect to database
-	connectionString := fmt.Sprintf("%s:%s@%s", instance.User, instance.Pass, instance.DSN)
-	db, err := sql.Open(instance.Type, connectionString)
+	db, err := sql.Open(instance.Type, instance.DSN)
 	if err != nil {
 		log.Errorf("[%s] Connect to %s database failed: %s", instance.Name, instance.Type, err)
 		return
