@@ -29,21 +29,27 @@ export LOG_LEVEL="debug"
 prod:
   prod01:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
   prod02:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
 dev:
   dev01:
     type: mysql
-    dsn: tcp(127.0.0.1:3306)/information_schema
-    user: test
-    pass: test123
+    dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
 ```
+### ## database drivers
+1. MySQL
+  https://github.com/go-sql-driver/mysql
+2. Oracle
+  https://github.com/godror/godror
+3. Postgres
+  https://github.com/lib/pq
+4. SQLite
+  https://github.com/mattn/go-sqlite3
+5. MS-SQL
+  https://github.com/denisenkom/go-mssqldb
+
 ## config-metrics format
 ```yaml
 metric01:
