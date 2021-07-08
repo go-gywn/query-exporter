@@ -1,9 +1,7 @@
 bind: 0.0.0.0:9104
 type: mysql
+dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
 instance: mytest
-dsn: tcp(127.0.0.1:3306)/information_schema
-user: test
-pass: test123
 metrics:
   process_count_by_host:
     query: "select user, substring_index(host, ':', 1) host, count(*) sessions from information_schema.processlist group by 1,2 "

@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -19,6 +18,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	name = "query_exporter"
+)
+
 func main() {
 	var err error
 	var config Config
@@ -31,7 +34,7 @@ func main() {
 	flag.Parse()
 
 	// =====================
-	// Load config
+	// Load config & yaml
 	// =====================
 	var b []byte
 	if b, err = ioutil.ReadFile(configFile); err != nil {
@@ -39,9 +42,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// =====================
 	// Load yaml
-	// =====================
 	if err := yaml.Unmarshal(b, &config); err != nil {
 		log.Errorf("Failed to load config: %s", err)
 		os.Exit(1)
@@ -50,11 +51,10 @@ func main() {
 	// ========================
 	// Regist describe
 	// ========================
-	prometheus.MustRegister(version.NewCollector("query_exporter"))
 	for metricName, metric := range config.Metrics {
 		metric.Labels = append(metric.Labels, "instance")
 		metric.metricDesc = prometheus.NewDesc(
-			prometheus.BuildFQName("", config.Type, metricName),
+			prometheus.BuildFQName(name, config.Type, metricName),
 			metric.Description,
 			metric.Labels, nil,
 		)
@@ -65,17 +65,14 @@ func main() {
 	// ========================
 	// Regist handler
 	// ========================
-	registry := prometheus.NewRegistry()
-	registry.MustRegister(&QueryExporter{
-		cfg: config,
-	})
-	gatherers := prometheus.Gatherers{
-		prometheus.DefaultGatherer,
-		registry,
-	}
+	prometheus.MustRegister(&QueryCollector{
+		cfg: &config,
+	}, version.NewCollector(name))
 
 	// http handler
-	h := promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{})
+	h := promhttp.HandlerFor(prometheus.Gatherers{
+		prometheus.DefaultGatherer,
+	}, promhttp.HandlerOpts{})
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		// Delegate http serving to Prometheus client library,
@@ -90,46 +87,41 @@ func main() {
 	}
 }
 
+// =============================
 // Config config structure
+// =============================
 type Config struct {
 	Bind     string
-	Instance string
 	Type     string
 	DSN      string
-	User     string
-	Pass     string
-	Metrics  Metrics
+	Instance string
+	Metrics  map[string]struct {
+		Query       string
+		Type        string
+		Description string
+		Labels      []string
+		Value       string
+		metricDesc  *prometheus.Desc
+	}
 }
 
-// Metrics metric map
-type Metrics map[string]Metric
-
-// Metric metric structure
-type Metric struct {
-	Query       string
-	Type        string
-	Description string
-	Labels      []string
-	Value       string
-	metricDesc  *prometheus.Desc
-}
-
-// QueryExporter exporter
-type QueryExporter struct {
-	cfg Config
+// =============================
+// QueryCollector exporter
+// =============================
+type QueryCollector struct {
+	cfg *Config
 }
 
 // Describe prometheus describe
-func (e *QueryExporter) Describe(ch chan<- *prometheus.Desc) {
+func (e *QueryCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Collect prometheus collect
-func (e *QueryExporter) Collect(ch chan<- prometheus.Metric) {
+func (e *QueryCollector) Collect(ch chan<- prometheus.Metric) {
 	// ========================
 	// Connect to database
 	// ========================
-	conInfo := fmt.Sprintf("%s:%s@%s", e.cfg.User, e.cfg.Pass, e.cfg.DSN)
-	db, err := sql.Open(e.cfg.Type, conInfo)
+	db, err := sql.Open(e.cfg.Type, e.cfg.DSN)
 	if err != nil {
 		log.Errorf("Connect to %s database failed: %s", e.cfg.Type, err)
 		return
@@ -144,6 +136,11 @@ func (e *QueryExporter) Collect(ch chan<- prometheus.Metric) {
 		}
 
 		cols, err := rows.Columns()
+		if err != nil {
+			log.Errorf("Failed to get column meta: %s", err)
+			continue
+		}
+
 		des := make([]interface{}, len(cols))
 		res := make([][]byte, len(cols))
 		for i := range cols {
@@ -152,7 +149,7 @@ func (e *QueryExporter) Collect(ch chan<- prometheus.Metric) {
 
 		// fetch database
 		for rows.Next() {
-			err = rows.Scan(des...)
+			rows.Scan(des...)
 			data := make(map[string]string)
 			for i, bytes := range res {
 				data[cols[i]] = string(bytes)
