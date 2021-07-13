@@ -9,7 +9,7 @@
 go build .
 ./query-exporter                          \
   --threads=8                             \
-  --bind="0.0.0.0:9104"                \
+  --bind="0.0.0.0:9104"                   \
   --config-database="config-database.yml" \
   --config-metrics="config-metrics.yml"
 ```
@@ -19,7 +19,7 @@ go build .
 export LOG_LEVEL="debug" 
 ./query-exporter                          \
   --threads=8                             \
-  --bind="0.0.0.0:9104"                \
+  --bind="0.0.0.0:9104"                   \
   --config-database="config-database.yml" \
   --config-metrics="config-metrics.yml"
 ```
