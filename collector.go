@@ -118,10 +118,10 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 				switch strings.ToLower(metric.Type) {
 				case "counter":
 					ch <- prometheus.MustNewConstMetric(metric.metricDesc, prometheus.CounterValue, val, labelVals...)
-				case "guage":
+				case "gauge":
 					ch <- prometheus.MustNewConstMetric(metric.metricDesc, prometheus.GaugeValue, val, labelVals...)
 				default:
-					log.Errorf("[%s] Metric type support only counter|guage, skip", instance.Name)
+					log.Errorf("[%s] Metric type support only counter|gauge, skip", instance.Name)
 					continue
 				}
 			}

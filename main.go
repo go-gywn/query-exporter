@@ -13,14 +13,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var address string
+var bind string
 var group map[string]Instances
 var collectors map[string]*Collector
 
 const (
 	defaultQueryTimeout   = 1
 	defaultThreadCount    = 32
-	defaultAddress        = "0.0.0.0:9104"
+	defaultBind           = "0.0.0.0:9104"
 	defaultConfigDatabase = "config-database.yml"
 	defaultConfigMetrics  = "config-metrics.yml"
 )
@@ -32,13 +32,13 @@ func main() {
 	var threads int64
 	var cfg1, cfg2 string
 	flag.Int64Var(&threads, "threads", defaultThreadCount, "collector thread count")
-	flag.StringVar(&address, "address", defaultAddress, "http server port")
+	flag.StringVar(&bind, "address", defaultBind, "http server port")
 	flag.StringVar(&cfg1, "config-database", defaultConfigDatabase, "configuration databases")
 	flag.StringVar(&cfg2, "config-metrics", defaultConfigMetrics, "configuration metrics")
 	flag.Parse()
 
 	// ===========================
-	log.Debugf("[address] %s", address)
+	log.Debugf("[bind] %s", bind)
 	log.Debugf("[threads] %d", threads)
 	log.Debugf("[config-database] %s", cfg1)
 	log.Debugf("[config-metrics] %s", cfg2)
@@ -125,7 +125,7 @@ func main() {
 		}
 
 		// Regist http handler
-		log.Infof("Regist handler %s/%s", address, path)
+		log.Infof("Regist handler %s/%s", bind, path)
 		http.HandleFunc("/"+path, func(w http.ResponseWriter, r *http.Request) {
 			h := promhttp.HandlerFor(prometheus.Gatherers{
 				prometheus.DefaultGatherer,
@@ -139,8 +139,8 @@ func main() {
 	// ===========================
 	// start server
 	// ===========================
-	log.Infof("Starting http server - %s", address)
-	if err = http.ListenAndServe(address, nil); err != nil {
+	log.Infof("Starting http server - %s", bind)
+	if err = http.ListenAndServe(bind, nil); err != nil {
 		log.Fatalf("Failed to start http server: %s", err)
 	}
 }

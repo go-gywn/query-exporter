@@ -9,7 +9,7 @@
 go build .
 ./query-exporter                          \
   --threads=8                             \
-  --address="0.0.0.0:9104"                \
+  --bind="0.0.0.0:9104"                \
   --config-database="config-database.yml" \
   --config-metrics="config-metrics.yml"
 ```
@@ -19,7 +19,7 @@ go build .
 export LOG_LEVEL="debug" 
 ./query-exporter                          \
   --threads=8                             \
-  --address="0.0.0.0:9104"                \
+  --bind="0.0.0.0:9104"                \
   --config-database="config-database.yml" \
   --config-metrics="config-metrics.yml"
 ```
@@ -67,24 +67,24 @@ metric01:
     timeout: 1
     metrics:
       process_count:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "sessions"
       process_session_min_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "min_time"
       process_session_max_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "max_time"
   - query: "select count(*) cnt from information_schema.innodb_trx"
     metrics:
       innodb_trx_count:
-        type: guage
+        type: gauge
         description: innodb current trx count
         labels: []
         value: "cnt"
@@ -103,17 +103,17 @@ metric02:
     timeout: 2
     metrics:
       process_count:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "sessions"
       process_session_min_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "min_time"
       process_session_max_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "max_time"

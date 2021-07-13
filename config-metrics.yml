@@ -13,17 +13,17 @@ metric01:
     timeout: 2
     metrics:
       process_count:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "sessions"
       process_session_min_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "min_time"
       process_session_max_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "max_time"
@@ -42,24 +42,24 @@ metric02:
     timeout: 1
     metrics:
       process_count:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "sessions"
       process_session_min_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "min_time"
       process_session_max_time:
-        type: guage
+        type: gauge
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "max_time"
   - query: "select count(*) cnt from information_schema.innodb_trx"
     metrics:
       innodb_trx_count:
-        type: guage
+        type: gauge
         description: innodb current trx count
         labels: []
         value: "cnt"
