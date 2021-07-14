@@ -129,9 +129,9 @@ metric03:
             group by 1"
     timeout: 1
     metrics:
-      book_date_count:
+      session_count:
         type: gauge
-        description: book_date count count
+        description: Session count
         labels: ["usename"]
         value: "sessions"
 ```
