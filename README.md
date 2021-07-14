@@ -37,6 +37,10 @@ dev:
   dev01:
     type: mysql
     dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
+postgres:
+  pg01:
+    type: postgres
+    dsn: postgres://test:test12@localhost/postgres?sslmode=disable
 ```
 ### ## database drivers
 1. MySQL
@@ -117,6 +121,19 @@ metric02:
         description: Session count
         labels: ["user","host", "db", "command"]
         value: "max_time"
+metric03:
+  targets: ["postgres"]
+  collects:
+  - query: "select usename, count(*) sessions 
+            from pg_stat_activity 
+            group by 1"
+    timeout: 1
+    metrics:
+      book_date_count:
+        type: gauge
+        description: book_date count count
+        labels: ["usename"]
+        value: "sessions"
 ```
 You can check with this url
 ```
