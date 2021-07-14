@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -51,7 +52,7 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 	}()
 
 	// Connect to database
-	db, err := sql.Open(instance.Type, instance.DSN)
+	db, err := sqlOpen[instance.Type](instance.DSN)
 	if err != nil {
 		log.Errorf("[%s] Connect to %s database failed: %s", instance.Name, instance.Type, err)
 		return
@@ -128,4 +129,20 @@ func (e *QueryCollector) scrape(instance Instance, ch chan<- prometheus.Metric) 
 		}
 	}
 	collectStatus = 1
+}
+
+// Database connection map, current only mysql support
+var sqlOpen = map[string]func(dsn string) (*sql.DB, error){
+	"mysql": func(dsn string) (*sql.DB, error) {
+		return sql.Open("mysql", dsn)
+	},
+	"postgres": func(dsn string) (*sql.DB, error) {
+		return nil, fmt.Errorf("postgres not support yet")
+	},
+	"mssql": func(dsn string) (*sql.DB, error) {
+		return nil, fmt.Errorf("mssql not support yet")
+	},
+	"sqlite": func(dsn string) (*sql.DB, error) {
+		return nil, fmt.Errorf("sqlite not support yet")
+	},
 }
