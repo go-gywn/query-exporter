@@ -137,7 +137,7 @@ var sqlOpen = map[string]func(dsn string) (*sql.DB, error){
 		return sql.Open("mysql", dsn)
 	},
 	"postgres": func(dsn string) (*sql.DB, error) {
-		return nil, fmt.Errorf("postgres not support yet")
+		return sql.Open("postgres", dsn)
 	},
 	"mssql": func(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("mssql not support yet")

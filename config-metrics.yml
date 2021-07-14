@@ -63,3 +63,16 @@ metric02:
         description: innodb current trx count
         labels: []
         value: "cnt"
+metric03:
+  targets: ["postgres"]
+  collects:
+  - query: "select usename, count(*) sessions 
+            from pg_stat_activity 
+            group by 1"
+    timeout: 1
+    metrics:
+      book_date_count:
+        type: gauge
+        description: book_date count count
+        labels: ["usename"]
+        value: "sessions"

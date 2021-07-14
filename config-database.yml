@@ -21,3 +21,7 @@ dev:
   dev01:
     type: mysql
     dsn: test:test123@tcp(127.0.0.1:3306)/information_schema
+postgres:
+  pg01:
+    type: postgres
+    dsn: postgres://test:test12@localhost/postgres?sslmode=disable
