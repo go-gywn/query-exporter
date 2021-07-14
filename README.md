@@ -45,13 +45,13 @@ postgres:
 ### ## database drivers
 1. MySQL
   https://github.com/go-sql-driver/mysql
-2. Oracle
-  https://github.com/godror/godror
-3. Postgres
+2. Postgres
   https://github.com/lib/pq
-4. SQLite
+3. Oracle (not support)
+  https://github.com/godror/godror
+4. SQLite (not support)
   https://github.com/mattn/go-sqlite3
-5. MS-SQL
+5. MS-SQL (not support)
   https://github.com/denisenkom/go-mssqldb
 
 ## config-metrics format
