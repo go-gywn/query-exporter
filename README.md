@@ -139,5 +139,5 @@ You can check with this url
 ```
 curl 127.0.0.1:9104/metric01
 curl 127.0.0.1:9104/metric02
-curl 127.0.0.1:9104/metric02
+curl 127.0.0.1:9104/metric03
 ```
