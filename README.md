@@ -47,11 +47,9 @@ postgres:
   https://github.com/go-sql-driver/mysql
 2. Postgres
   https://github.com/lib/pq
-3. Oracle (not support)
-  https://github.com/godror/godror
-4. SQLite (not support)
+3. SQLite (not support)
   https://github.com/mattn/go-sqlite3
-5. MS-SQL (not support)
+4. MS-SQL (not support)
   https://github.com/denisenkom/go-mssqldb
 
 ## config-metrics format
